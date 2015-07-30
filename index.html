@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+            <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <!-- <link rel="stylesheet" href="/css/bootstrap-theme.min.css"> -->
+
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+  </head>
+  <body>
+
+    <div class="container-fluid">
+      <div class="row">
+
+
+        <div id = "room_container" class="col-xs-3">
+          <div class="panel panel-default">
+
+            <div class="panel-heading text-center">Open Rooms</div>
+            <div class="panel-body"><ul id="rooms" class="media-list"></ul></div>
+
+            <div class="panel-footer">
+              <form id="create" action="">
+                <div class="input-group">
+                  <input id="newRoomName" type="text" class="form-control" placeholder="create a room" />
+                  <span class="input-group-btn"><button class="btn btn-info"><span class="glyphicon glyphicon-plus"></button></span>
+                </div>
+              </form>
+            </div>
+
+          </div> <!-- panel -->
+        </div> <!-- room container -->
+
+        <div id = "message_container" class="col-xs-6">
+          <div class="panel panel-default">
+
+            <div id="header" class="panel-heading text-center">Socket.io Chat</div>
+            <div class="panel-body"><ul id="messages" class="media-list"></ul></div> 
+
+            <div class="panel-footer">
+              <form id="send" action="">
+                <div class="input-group">
+                  <input id="newChatMessage" type="text" class="form-control" autocomplete="off" placeholder="enter a message" />
+                  <span class="input-group-btn"><button class="btn btn-info"><span class="glyphicon glyphicon-send"></span></button></span>
+                </div>
+              </form>
+            </div>   
+
+          </div> <!-- panel -->
+        </div> <!-- message container -->
+
+        <div id = "user_container" class="col-xs-3">
+          <div class="panel panel-default">
+
+            <div class="panel-heading text-center">Online Users</div>
+            <div class="panel-body"><ul id="users" class="media-list"></ul></div>
+
+            <div class="panel-footer">
+              <form id="change" action="">
+                <div class="input-group">
+                  <input id="newUserName" type="text" class="form-control" placeholder="change your name" />
+                  <span class="input-group-btn"><button class="btn btn-info"><span class="glyphicon glyphicon-edit"></span></button></span>
+                </div>
+              </form>
+            </div>
+
+          </div> <!-- panel -->
+        </div> <!-- user container -->
+
+      </div> <!-- row -->
+    </div> <!-- container -->
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="/js/main.js"></script>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="/js/vendor/bootstrap.min.js"></script>
+  </body>
+</html>
