@@ -29,7 +29,6 @@ io.on('connection', function(socket){
     updateUsers();
     updateRooms();
     updateHeader(socket);
-    console.log(socket);
   });
  
   // broadcast chat event to everyone except sender
