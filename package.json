@@ -5,5 +5,27 @@
   "dependencies": {
     "express": "^4.10.2",
     "socket.io": "^1.3.5"
-  }
+  },
+  "main": "app.js",
+  "devDependencies": {},
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jacarval/socket-io-chat.git"
+  },
+  "keywords": [
+    "socket",
+    "io",
+    "chat",
+    "example"
+  ],
+  "author": "jamal-carvalho",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jacarval/socket-io-chat/issues"
+  },
+  "homepage": "https://github.com/jacarval/socket-io-chat#readme"
 }
