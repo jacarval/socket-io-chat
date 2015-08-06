@@ -6,7 +6,6 @@
   $("#change").submit(changeUserName);
 
   var socket = io();
-  var room = "lobby";
   var username;
 
   $.ajax({
