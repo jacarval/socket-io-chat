@@ -2,7 +2,7 @@ var socket = io();
 
 var ChatApp = React.createClass({
 	getInitialState: function() {
-		return {users: [], rooms: [], username: "", currentroom: "", messages:[]}
+		return {users: [], rooms: [], username: '', currentroom: '', messages:[], roomsFilterText: '', usersFilterText: ''}
 	},
 	componentDidMount: function() {
 	  $.ajax({
@@ -30,11 +30,21 @@ var ChatApp = React.createClass({
 
 	},
 
+	handleUsernamesInput: function(filterText){
+		this.setState({usersFilterText: filterText})
+	},
+
 	handleUsernameSubmit: function(name) {
+		this.setState({usersFilterText: ''})
 	  socket.emit('change user', name);
 	},
 
+	handleRoomsInput: function(filterText){
+		this.setState({roomsFilterText: filterText})
+	},
+
 	handleRoomSubmit: function(name) {
+		this.setState({roomsFilterText: ''})
     socket.emit('create room', name);
 	},
 
@@ -80,9 +90,11 @@ var ChatApp = React.createClass({
 	render: function() {
 		return (
     	<div className="row">
-				<RoomPanel 
+				<FilterableRoomPanel 
 					rooms={this.state.rooms}
 					submit={this.handleRoomSubmit}
+					input={this.handleRoomsInput}
+					filterText={this.state.roomsFilterText}
 				/>			
 				<MessagePanel 
 					submit={this.handleMessageSubmit}
@@ -90,9 +102,11 @@ var ChatApp = React.createClass({
 					currentroom={this.state.currentroom}
 					messages={this.state.messages}
 				/>	
-				<UserPanel 
+				<FilterableUserPanel 
 					users={this.state.users}
 					submit={this.handleUsernameSubmit}
+					input={this.handleUsernamesInput}
+					filterText={this.state.usersFilterText}
 				/>
    		</div>
 		);
@@ -113,6 +127,7 @@ var MessagePanel = React.createClass({
 						placeholder="enter a message"
 						icon="glyphicon glyphicon-send"
 						onFormSubmit={this.props.submit}
+						onUserInput={function(input){console.log(input)}}
 					/>
 				</div>
 			</div>
@@ -181,17 +196,23 @@ var ChatEvent = React.createClass({
 	}
 });
 
-var UserPanel = React.createClass({
+var FilterableUserPanel = React.createClass({
 	render: function() {
 		return (
 			<div id = "user_container" className="col-xs-3">
 				<div className="panel panel-default">
 	        <PanelHeader title="Online Users" />
-	        <PanelBody id="users" data={this.props.users}/>
+	        <PanelBody 
+	        	id="users" 
+	        	data={this.props.users}
+	        	filterText={this.props.filterText}
+	        />
 	        <PanelFooter 
 	        	placeholder="change your name" 
 	        	icon="glyphicon glyphicon-edit"
 	        	onFormSubmit={this.props.submit}
+	        	filterText={this.props.filterText}
+	        	onUserInput={this.props.input}
 	        />
 	      </div>
 	    </div>
@@ -199,17 +220,23 @@ var UserPanel = React.createClass({
 	}
 });
 
-var RoomPanel = React.createClass({
+var FilterableRoomPanel = React.createClass({
 	render: function() {
 		return (
 		<div id = "room_container" className="col-xs-3">
 			<div className="panel panel-default">
 	      <PanelHeader title="Open Rooms" />
-	      <PanelBody id="rooms" data={this.props.rooms}/>
+	      <PanelBody 
+	      	id="rooms" 
+	      	data={this.props.rooms}
+	      	filterText={this.props.filterText}
+	      />
 	      <PanelFooter 
 	      	placeholder="create a room" 
 	      	icon="glyphicon glyphicon-plus"
 	      	onFormSubmit={this.props.submit}
+	      	filterText={this.props.filterText}
+	      	onUserInput={this.props.input}
 	      />
 	    </div>
 	   </div>
@@ -228,10 +255,13 @@ var PanelHeader = React.createClass({
 var PanelBody = React.createClass({
 	render: function() {
 		var dataNodes = this.props.data.map(function(item) {
-			return (
-				<li className="list-group-item" onClick={createHandler(item)}>{item}</li> 
-			);
-		});
+			if (item.indexOf(this.props.filterText) === -1) {
+ 	    	return;
+      }
+      else {
+        return (<li className="list-group-item" onClick={createHandler(item)}>{item}</li> );
+      }
+ 		}.bind(this));
 		return (
 			<div className="panel-body">
 				<ul id={this.props.id} className="media-list">
@@ -253,9 +283,11 @@ var PanelFooter = React.createClass({
   	React.findDOMNode(this.refs.formInput).value = '';
   	return;
 	},
-	
-	handleChange: function() {
 
+	handleChange: function() {
+    this.props.onUserInput(
+    	React.findDOMNode(this.refs.formInput).value
+    )
 	},
 
 	render: function() {
@@ -267,8 +299,9 @@ var PanelFooter = React.createClass({
             	type="text"
             	className="form-control" 
             	autoComplete="off"
-            	placeholder={this.props.placeholder} 
+            	placeholder={this.props.placeholder}
             	ref="formInput"
+            	onChange={this.handleChange}
             />
             <span className="input-group-btn">
             	<button className="btn btn-info">
