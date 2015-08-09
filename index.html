@@ -4,6 +4,8 @@
     <title>Socket.IO chat</title>
             <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.13.3/JSXTransformer.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.13.3/react.js"></script>
 
     <!-- Optional theme -->
     <!-- <link rel="stylesheet" href="/css/bootstrap-theme.min.css"> -->
@@ -12,16 +14,15 @@
   </head>
   <body>
 
-    <div class="container-fluid">
+    <div id="chatApp" class="container-fluid">
+<!--
       <div class="row">
 
-
         <div id = "room_container" class="col-xs-3">
+      
           <div class="panel panel-default">
-
             <div class="panel-heading text-center">Open Rooms</div>
             <div class="panel-body"><ul id="rooms" class="media-list"></ul></div>
-
             <div class="panel-footer">
               <form id="create" action="">
                 <div class="input-group">
@@ -30,16 +31,15 @@
                 </div>
               </form>
             </div>
+          </div>
 
-          </div> <!-- panel -->
-        </div> <!-- room container -->
+        </div>
 
         <div id = "message_container" class="col-xs-6">
+      
           <div class="panel panel-default">
-
             <div id="header" class="panel-heading text-center">Socket.io Chat</div>
-            <div class="panel-body"><ul id="messages" class="media-list"></ul></div> 
-
+            <div class="panel-body"><ul id="messages" class="media-list"></ul></div>
             <div class="panel-footer">
               <form id="send" action="">
                 <div class="input-group">
@@ -48,11 +48,12 @@
                 </div>
               </form>
             </div>   
+          </div>  
 
-          </div> <!-- panel -->
-        </div> <!-- message container -->
+        </div>
 
         <div id = "user_container" class="col-xs-3">
+      
           <div class="panel panel-default">
 
             <div class="panel-heading text-center">Online Users</div>
@@ -67,18 +68,22 @@
               </form>
             </div>
 
-          </div> <!-- panel -->
-        </div> <!-- user container -->
+          </div>
 
-      </div> <!-- row -->
-    </div> <!-- container -->
+        </div>
+
+      </div>
+-->
+    </div>
+
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-    <script src="/js/main.js"></script>
-
     <!-- Latest compiled and minified JavaScript -->
     <script src="/js/vendor/bootstrap.min.js"></script>
+    <script src="/jsx/react.jsx" type="text/jsx"></script>
+    <!--<script src="/js/main.js"></script>-->
+
   </body>
 </html>
