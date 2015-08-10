@@ -6,14 +6,18 @@ var ChatApp = React.createClass({
 	},
 
 	componentDidMount: function() {
-		$.ajax({
-		url: 'https://randomuser.me/api/',
-		dataType: 'json',
-		success: function(data){
-			var username = data.results[0].user.username;
-			socket.emit('add user', username);
-		}
-	});
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', encodeURI('https://randomuser.me/api/'));
+		xhr.onload = function() {
+		    if (xhr.status === 200) {
+		    	var username = JSON.parse(xhr.responseText).results[0].user.username;
+				socket.emit('add user', username);  
+		    }
+		    else {
+		        alert('Request failed.  Returned status of ' + xhr.status);
+		    }
+		};
+		xhr.send();
 
 		socket.on('header:update', this._updateHeader);
 
