@@ -4,79 +4,71 @@ var ChatApp = React.createClass({
 	getInitialState: function() {
 		return {users: [], rooms: [], username: '', currentroom: '', messages:[], roomsFilterText: '', usersFilterText: ''}
 	},
+
 	componentDidMount: function() {
-	  $.ajax({
-	    url: 'https://randomuser.me/api/',
-	    dataType: 'json',
-	    success: function(data){
-	      var username = data.results[0].user.username;
-	      socket.emit('add user', username);
-	    }
-	  });
+		$.ajax({
+		url: 'https://randomuser.me/api/',
+		dataType: 'json',
+		success: function(data){
+			var username = data.results[0].user.username;
+			socket.emit('add user', username);
+		}
+	});
 
-	  socket.on('header:update', this._updateHeader);
+		socket.on('header:update', this._updateHeader);
 
-	  socket.on('alert', function(msg) { alert(msg); } );
+		socket.on('alert', function(msg) { alert(msg); } );
 
-	  socket.on('messages:empty', this._clearMessageHistory);
+		socket.on('messages:empty', this._clearMessageHistory);
 
-		socket.on('chat message', this._showChatMessage);
+		socket.on('messages:update', this._updateMessages);
 
-	  socket.on('chat event', this._showChatEvent);
+		socket.on('users:update', this._updateUsers);
 
-	  socket.on('update users', this._updateUsers);
-
-	  socket.on('rooms:refresh', this._updateRooms);
+		socket.on('rooms:update', this._updateRooms);
 
 	},
 
-	handleUsernamesInput: function(filterText){
+	handleUsernameInput: function(filterText){
 		this.setState({usersFilterText: filterText})
 	},
 
 	handleUsernameSubmit: function(name) {
 		this.setState({usersFilterText: ''})
-	  socket.emit('change user', name);
+	 	socket.emit('change user', name);
 	},
 
-	handleRoomsInput: function(filterText){
+	handleRoomInput: function(filterText){
 		this.setState({roomsFilterText: filterText})
 	},
 
 	handleRoomSubmit: function(name) {
 		this.setState({roomsFilterText: ''})
-    socket.emit('create room', name);
+    	socket.emit('create room', name);
+	},
+
+	handleMessageInput: function(text) {
+		// do nothing for now
 	},
 
 	handleMessageSubmit: function(text) {
 		var msg = {text: text, user: this.state.username, time: (new Date()).toLocaleTimeString(), align: "right"}
-		this._showChatMessage(msg)
-	  socket.emit('send message', msg);
-	},
-
-	_showChatEvent: function(text) {
-		var messages = this.state.messages;
-		var event = {event: text}
-		var newMessages = messages.concat(event);
-		this._updateMessages(newMessages);
-	},
-
-	_showChatMessage: function(msg) {
-		var messages = this.state.messages;
-		var newMessages = messages.concat(msg);
-	  this._updateMessages(newMessages);
+		this._updateMessages(msg);
+		socket.emit('send message', msg);
 	},
 
 	_clearMessageHistory: function() {
 		this.setState({messages: []});
 	},
 
-	_updateUsers: function(users) {
-		this.setState({users: users});
+	_updateMessages: function(message) {
+		var messages = this.state.messages;
+		var newMessages = messages.concat(message);
+		this.setState({messages: newMessages});
 	},
 
-	_updateMessages: function(messages) {
-		this.setState({messages: messages});
+	_updateUsers: function(users) {
+		this.setState({users: users});
 	},
 
 	_updateRooms: function(rooms) {
@@ -90,24 +82,25 @@ var ChatApp = React.createClass({
 	render: function() {
 		return (
     	<div className="row">
-				<FilterableRoomPanel 
-					rooms={this.state.rooms}
-					submit={this.handleRoomSubmit}
-					input={this.handleRoomsInput}
-					filterText={this.state.roomsFilterText}
-				/>			
-				<MessagePanel 
-					submit={this.handleMessageSubmit}
-					username={this.state.username}
-					currentroom={this.state.currentroom}
-					messages={this.state.messages}
-				/>	
-				<FilterableUserPanel 
-					users={this.state.users}
-					submit={this.handleUsernameSubmit}
-					input={this.handleUsernamesInput}
-					filterText={this.state.usersFilterText}
-				/>
+			<FilterableRoomPanel 
+				rooms={this.state.rooms}
+				submit={this.handleRoomSubmit}
+				input={this.handleRoomInput}
+				filterText={this.state.roomsFilterText}
+			/>
+			<MessagePanel 
+				submit={this.handleMessageSubmit}
+				username={this.state.username}
+				currentroom={this.state.currentroom}
+				messages={this.state.messages}
+				input={this.handleMessageInput}
+			/>	
+			<FilterableUserPanel 
+				users={this.state.users}
+				submit={this.handleUsernameSubmit}
+				input={this.handleUsernameInput}
+				filterText={this.state.usersFilterText}
+			/>
    		</div>
 		);
 	}
@@ -127,7 +120,7 @@ var MessagePanel = React.createClass({
 						placeholder="enter a message"
 						icon="glyphicon glyphicon-send"
 						onFormSubmit={this.props.submit}
-						onUserInput={function(input){console.log(input)}}
+						onUserInput={this.props.input}
 					/>
 				</div>
 			</div>
@@ -137,8 +130,8 @@ var MessagePanel = React.createClass({
 
 var MessagePanelBody = React.createClass({
 	componentWillUpdate: function() {
-	  var node = React.findDOMNode(this.refs.messages);
-	  this.shouldScrollBottom = node.scrollTop + node.clientHeight === node.scrollHeight;
+		var node = React.findDOMNode(this.refs.messages);
+		this.shouldScrollBottom = node.scrollTop + node.clientHeight === node.scrollHeight;
 	},
 	componentDidUpdate: function() {
 		if (this.shouldScrollBottom) {
@@ -170,19 +163,19 @@ var Message = React.createClass({
 		var msg = this.props.msg
 		return(
 			<li className={"media text-" + msg.align}>
-		  	<div className="media-body">
-		    	<div className="media">
-            <a className={"pull-" + msg.align} href="#">
-              <span className="glyphicon glyphicon-user"></span>
-            </a>
-            <div className="media-body">
-              {msg.text}
-              <br />
-             <small className="text-muted">{msg.user} | {msg.time}</small>
-              <hr />
-            </div>
-	        </div>
-		    </div>
+				<div className="media-body">
+					<div className="media">
+						<a className={"pull-" + msg.align} href="#">
+							<span className="glyphicon glyphicon-user"></span>
+						</a>
+						<div className="media-body">
+							{msg.text}
+							<br />
+							<small className="text-muted">{msg.user} | {msg.time}</small>
+							<hr />
+						</div>
+					</div>
+				</div>
 			</li>
 		);
 	}
@@ -201,21 +194,21 @@ var FilterableUserPanel = React.createClass({
 		return (
 			<div id = "user_container" className="col-xs-3">
 				<div className="panel panel-default">
-	        <PanelHeader title="Online Users" />
-	        <PanelBody 
-	        	id="users" 
-	        	data={this.props.users}
-	        	filterText={this.props.filterText}
-	        />
-	        <PanelFooter 
-	        	placeholder="change your name" 
-	        	icon="glyphicon glyphicon-edit"
-	        	onFormSubmit={this.props.submit}
-	        	filterText={this.props.filterText}
-	        	onUserInput={this.props.input}
-	        />
-	      </div>
-	    </div>
+					<PanelHeader title={"Online Users (" + this.props.users.length + ")"}  />
+					<PanelBody 
+						id="users" 
+						data={this.props.users}
+						filterText={this.props.filterText}
+					/>
+					<PanelFooter 
+						placeholder="change your name" 
+						icon="glyphicon glyphicon-edit"
+						onFormSubmit={this.props.submit}
+						filterText={this.props.filterText}
+						onUserInput={this.props.input}
+				    />
+				</div>
+			</div>
 		);
 	}
 });
@@ -223,23 +216,23 @@ var FilterableUserPanel = React.createClass({
 var FilterableRoomPanel = React.createClass({
 	render: function() {
 		return (
-		<div id = "room_container" className="col-xs-3">
-			<div className="panel panel-default">
-	      <PanelHeader title="Open Rooms" />
-	      <PanelBody 
-	      	id="rooms" 
-	      	data={this.props.rooms}
-	      	filterText={this.props.filterText}
-	      />
-	      <PanelFooter 
-	      	placeholder="create a room" 
-	      	icon="glyphicon glyphicon-plus"
-	      	onFormSubmit={this.props.submit}
-	      	filterText={this.props.filterText}
-	      	onUserInput={this.props.input}
-	      />
-	    </div>
-	   </div>
+			<div id = "room_container" className="col-xs-3">
+				<div className="panel panel-default">
+					<PanelHeader title={"Open Rooms (" + this.props.rooms.length + ")"} />
+					<PanelBody 
+						id="rooms" 
+						data={this.props.rooms}
+						filterText={this.props.filterText}
+					/>
+					<PanelFooter 
+						placeholder="create a room" 
+						icon="glyphicon glyphicon-plus"
+						onFormSubmit={this.props.submit}
+						filterText={this.props.filterText}
+						onUserInput={this.props.input}
+					/>
+				</div>
+			</div>
 		);
 	}
 });
@@ -256,17 +249,17 @@ var PanelBody = React.createClass({
 	render: function() {
 		var dataNodes = this.props.data.map(function(item) {
 			if (item.indexOf(this.props.filterText) === -1) {
- 	    	return;
-      }
-      else {
-        return (<li className="list-group-item" onClick={createHandler(item)}>{item}</li> );
-      }
- 		}.bind(this));
-		return (
-			<div className="panel-body">
-				<ul id={this.props.id} className="media-list">
-					{dataNodes}
-				</ul>
+				return;
+			}
+			else {
+				return (<li className="list-group-item" onClick={createHandler(item)}>{item}</li> );
+				}
+			}.bind(this));
+			return (
+				<div className="panel-body">
+					<ul id={this.props.id} className="media-list">
+						{dataNodes}
+					</ul>
 			</div>
 		);
 	}
@@ -275,42 +268,42 @@ var PanelBody = React.createClass({
 var PanelFooter = React.createClass({
 	handleSubmit: function(e) {
 		e.preventDefault();
-    var data = React.findDOMNode(this.refs.formInput).value.trim();
-    if (!data) {
-    	return;
-    }
-    this.props.onFormSubmit(data);
-  	React.findDOMNode(this.refs.formInput).value = '';
-  	return;
+		var data = React.findDOMNode(this.refs.formInput).value.trim();
+		if (!data) {
+		return;
+		}
+		this.props.onFormSubmit(data);
+		React.findDOMNode(this.refs.formInput).value = '';
+		return;
 	},
 
 	handleChange: function() {
-    this.props.onUserInput(
-    	React.findDOMNode(this.refs.formInput).value
-    )
+		this.props.onUserInput(
+			React.findDOMNode(this.refs.formInput).value
+		)
 	},
 
 	render: function() {
 		return (
 			<div className="panel-footer">
-        <form id="send" onSubmit={this.handleSubmit}>
-          <div className="input-group">
-            <input 
-            	type="text"
-            	className="form-control" 
-            	autoComplete="off"
-            	placeholder={this.props.placeholder}
-            	ref="formInput"
-            	onChange={this.handleChange}
-            />
-            <span className="input-group-btn">
-            	<button className="btn btn-info">
-            		<span className={this.props.icon}></span>
-            	</button>
-            </span>
-          </div>
-        </form>
-      </div> 
+	        <form id="send" onSubmit={this.handleSubmit}>
+	          <div className="input-group">
+	            <input 
+	            	type="text"
+	            	className="form-control" 
+	            	autoComplete="off"
+	            	placeholder={this.props.placeholder}
+	            	ref="formInput"
+	            	onChange={this.handleChange}
+	            />
+	            <span className="input-group-btn">
+	            	<button className="btn btn-info">
+	            		<span className={this.props.icon}></span>
+	            	</button>
+	            </span>
+	          </div>
+	        </form>
+	      </div> 
 		);
 	}
 });
