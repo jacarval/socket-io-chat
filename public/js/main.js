@@ -1,6 +1,6 @@
 /*jshint esnext: true*/
 
-  // submit a message to the server
+  submit a message to the server
   $('#send').submit(sendChatMessage);
   $("#create").submit(createNewRoom);
   $("#change").submit(changeUserName);

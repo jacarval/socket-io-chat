@@ -33,7 +33,8 @@ io.on('connection', function(socket){
  
   // broadcast chat event to everyone except sender
   socket.on('send message', function(msg){
-    socket.broadcast.to(socket.room).emit('chat message', msg,  socket.username, (new Date()).toLocaleTimeString(), "left");
+    msg.align = "left";
+    socket.broadcast.to(socket.room).emit('chat message', msg);
   });
 
   socket.on('create room', function(name){
@@ -80,7 +81,6 @@ io.on('connection', function(socket){
       socket.broadcast.to(socket.room).emit('chat event', socket.username + " is now " + name);
       socket.username = name;
       usernames[name] = true;
-      socket.emit('update name', name);
       updateUsers();
       updateHeader(socket);
     }
@@ -107,7 +107,7 @@ io.on('connection', function(socket){
   }
 
   function switchRoom(name, socket){
-    if (name != socket.room){
+    if (name && rooms[name] && socket.room != name){
       leaveRoom(socket);
       joinRoom(name, socket);
     }
