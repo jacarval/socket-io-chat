@@ -23,8 +23,8 @@ io.on('connection', function(socket){
     socket.username = name;
     socket.room = 'lobby';
     socket.join('lobby');
-    socket.emit('chat event','hello, ' + name + '! you have entered the lobby');
-    socket.broadcast.to('lobby').emit('chat event', socket.username + " has joined the chat");
+    socket.emit('messages:update',{event: 'hello, ' + name + '! you have entered the lobby'});
+    socket.broadcast.to('lobby').emit('messages:update', {event: socket.username + " has joined the chat"});
     usernames[socket.username] = true;
     updateUsers();
     updateRooms();
@@ -34,7 +34,7 @@ io.on('connection', function(socket){
   // broadcast chat event to everyone except sender
   socket.on('send message', function(msg){
     msg.align = "left";
-    socket.broadcast.to(socket.room).emit('chat message', msg);
+    socket.broadcast.to(socket.room).emit('messages:update', msg);
   });
 
   socket.on('create room', function(name){
@@ -51,7 +51,7 @@ io.on('connection', function(socket){
 
   // emit a disconnected message to all clients
   socket.on('disconnect', function(){
-    socket.broadcast.to(socket.room).emit('chat event', socket.username + " has left the chat");
+    socket.broadcast.to(socket.room).emit('messages:chatevent',{event: socket.username + " has left the chat"});
     removeUser(socket);
   });
 
@@ -60,11 +60,11 @@ io.on('connection', function(socket){
   }
 
   function updateUsers(){
-    io.emit("update users", Object.keys(usernames).sort());
+    io.emit("users:update", Object.keys(usernames).sort());
   }
 
   function updateRooms(){
-    io.emit("rooms:refresh", Object.keys(rooms).sort());
+    io.emit("rooms:update", Object.keys(rooms).sort());
   }
 
   function removeUser(socket){
@@ -78,7 +78,7 @@ io.on('connection', function(socket){
 
     if (!usernames[name] && name){      
       removeUser(socket);
-      socket.broadcast.to(socket.room).emit('chat event', socket.username + " is now " + name);
+      socket.broadcast.to(socket.room).emit('messages:update', {event: socket.username + " is now " + name});
       socket.username = name;
       usernames[name] = true;
       updateUsers();
@@ -90,7 +90,7 @@ io.on('connection', function(socket){
   }
 
   function leaveRoom(socket){
-    socket.broadcast.to(socket.room).emit('chat event', socket.username + " has left the chat");
+    socket.broadcast.to(socket.room).emit( 'messages:update', {event: socket.username + " has left the chat"});
     socket.leave(socket.room);
     socket.room = null;
   }
@@ -99,9 +99,9 @@ io.on('connection', function(socket){
     if (name && rooms[name] && socket.room != name){
       socket.room = name;
       socket.join(name);
-      socket.broadcast.to(name).emit('chat event', socket.username + " has joined the chat");
-      socket.emit('messages:empty');
-      socket.emit('chat event', 'you are now in ' + name);
+      socket.broadcast.to(name).emit('messages:update', {event: socket.username + " has joined the chat"});
+      socket.emit('show:empty');
+      socket.emit('messages:update',{event: 'you are now in ' + name});
       updateHeader(socket);
     }
   }
